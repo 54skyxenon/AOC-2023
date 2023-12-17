@@ -5,6 +5,7 @@ const lines: string[] = _.reject(
   fs.readFileSync("inputs/day2.txt", "utf-8").split("\n"),
   _.isEmpty
 );
+
 type Color = "red" | "green" | "blue";
 type ColorCountMap = Record<Color, number>;
 
