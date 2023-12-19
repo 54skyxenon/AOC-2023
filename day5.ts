@@ -3,6 +3,12 @@ import fs from "fs";
 import { Pool } from "multiprocess-pool";
 import { delimiter, MappingCollection, getFinalLocation } from "./util-day5";
 
+/**
+ * Dependencies:
+ * - util-day5.ts: helper function definitions
+ * - worker-day5.ts: houses the worker thread function
+ */
+
 const main = async () => {
   // Parse input from txt file
   const lines: string[] = _.reject(
