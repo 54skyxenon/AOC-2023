@@ -1,118 +1,90 @@
-import _, { Dictionary } from "lodash";
+import _ from "lodash";
 import fs from "fs";
+import { Pool } from "multiprocess-pool";
+import { delimiter, MappingCollection, getFinalLocation } from "./util-day5";
 
-const lines: string[] = _.reject(
-  fs.readFileSync("inputs/day5.txt", "utf-8").split("\n"),
-  _.isEmpty
-);
+/**
+ * Dependencies:
+ * - util-day5.ts: helper function definitions
+ * - worker-day5.ts: houses the worker thread function
+ */
 
-const delimiter: string = "***";
+const main = async () => {
+  // Parse input from txt file
+  const lines: string[] = _.reject(
+    fs.readFileSync("inputs/day5.txt", "utf-8").split("\n"),
+    _.isEmpty
+  );
 
-interface RangeMapping extends Dictionary<number> {
-  destinationRangeStart: number;
-  sourceRangeStart: number;
-  rangeLength: number;
-}
+  const seedLocations: number[] = lines[0]
+    .split(": ")[1]
+    .split(" ")
+    .map((seedLocation) => parseInt(seedLocation, 10));
 
-type MappingCollection = RangeMapping[];
+  const mappingCollections = lines
+    .slice(1)
+    .map((line) => (line.endsWith("map:") ? delimiter : line + " "))
+    .join("")
+    .split(delimiter)
+    .filter((tokens) => !_.isEmpty(tokens))
+    .map((tokens) => _.reject(tokens.split(" "), _.isEmpty))
+    .map((tokens) => tokens.map((token) => parseInt(token, 10)))
+    .map((tokens) => _.chunk(tokens, 3))
+    .map((tokens) =>
+      tokens.map((tokenChunk) =>
+        _.zipObject(
+          ["destinationRangeStart", "sourceRangeStart", "rangeLength"],
+          tokenChunk
+        )
+      )
+    ) as MappingCollection[];
 
-// Part 1
-const applyMappingCollection = (
-  location: number,
-  mappingCollection: MappingCollection
-): number => {
-  const mapping = _.find(
-    mappingCollection,
-    ({ destinationRangeStart, sourceRangeStart, rangeLength }) => {
-      return (
-        location >= sourceRangeStart &&
-        location < sourceRangeStart + rangeLength
-      );
-    }
-  ) as RangeMapping;
-
-  if (mapping) {
-    const offset: number = location - mapping.sourceRangeStart;
-    return mapping.destinationRangeStart + offset;
-  }
-
-  return location;
-};
-
-const getFinalLocation = (
-  seedLocation: number,
-  mappingCollections: MappingCollection[]
-): number => _.reduce(mappingCollections, applyMappingCollection, seedLocation);
-
-const seedLocations: number[] = lines[0]
-  .split(": ")[1]
-  .split(" ")
-  .map((seedLocation) => parseInt(seedLocation, 10));
-
-const mappingCollections = lines
-  .slice(1)
-  .map((line) => (line.endsWith("map:") ? delimiter : line + " "))
-  .join("")
-  .split(delimiter)
-  .filter((tokens) => !_.isEmpty(tokens))
-  .map((tokens) => _.reject(tokens.split(" "), _.isEmpty))
-  .map((tokens) => tokens.map((token) => parseInt(token, 10)))
-  .map((tokens) => _.chunk(tokens, 3))
-  .map((tokens) =>
-    tokens.map((tokenChunk) =>
-      _.zipObject(
-        ["destinationRangeStart", "sourceRangeStart", "rangeLength"],
-        tokenChunk
+  // Part 1
+  console.log(
+    _.min(
+      seedLocations.map((seedLocation) =>
+        getFinalLocation(seedLocation, mappingCollections)
       )
     )
-  ) as MappingCollection[];
+  );
 
-console.log(
-  _.min(
-    seedLocations.map((seedLocation) =>
-      getFinalLocation(seedLocation, mappingCollections)
-    )
-  )
-);
+  // Part 2
+  const allSeedLocations = _.chunk(seedLocations, 2).map((seedLocationPair) => [
+    seedLocationPair[0],
+    seedLocationPair[0] + seedLocationPair[1],
+  ]);
 
-// Part 2
-const allSeedLocations = _.chunk(seedLocations, 2).map((seedLocationPair) => [
-  seedLocationPair[0],
-  seedLocationPair[0] + seedLocationPair[1],
-]);
+  allSeedLocations.sort((a, b) => {
+    const [a1, a2] = a;
+    const [b1, b2] = b;
 
-allSeedLocations.sort((a, b) => {
-  const [a1, a2] = a;
-  const [b1, b2] = b;
+    if (a1 !== b1) {
+      return a1 - b1;
+    }
 
-  if (a1 !== b1) {
-    return a1 - b1;
-  }
+    return a2 - b2;
+  });
 
-  return a2 - b2;
-});
+  const workerContexts = allSeedLocations.map((seedLocationPair, index) => ({
+    seedRange: seedLocationPair,
+    mappingCollections: mappingCollections,
+    workerId: index,
+  }));
 
-// This will take a long ass time, but not forever
-console.log(
-  _.min(
-    allSeedLocations.map(([seedStart, seedEnd]) => {
-      let bestHere = Infinity;
+  // This will take a long ass time, but not forever
+  console.log("Spinning up workers for part 2...");
+  const timeStart = Date.now();
 
-      for (let i = seedStart; i < seedEnd; i++) {
-        bestHere = Math.min(bestHere, getFinalLocation(i, mappingCollections));
+  const pool = new Pool(allSeedLocations.length);
+  console.log(
+    _.min(await pool.map(workerContexts, __dirname + "/worker-day5"))
+  );
+  pool.close();
 
-        // Serves as progress bar
-        if (i % 1000000 === 0) {
-          console.log(
-            "At",
-            i,
-            "best so far for the current range of seeds is",
-            bestHere
-          );
-        }
-      }
+  const timeElapsed = Date.now() - timeStart;
+  console.log(
+    `Completed part 2 in ${Math.floor(timeElapsed / 60000)} minutes!`
+  );
+};
 
-      return bestHere;
-    })
-  )
-);
+main();
