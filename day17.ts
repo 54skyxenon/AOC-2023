@@ -21,9 +21,7 @@ const adjacent: [number, number, Direction][] = [
   [0, -1, Direction.West],
 ];
 
-const oppositeDirection = (dir: Direction): Direction => {
-  return (dir + 2) % 4;
-};
+const oppositeDirection = (dir: Direction): Direction => (dir + 2) % 4;
 
 const dijkstra = (
   turnMinimum: number = 0,
