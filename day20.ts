@@ -308,15 +308,15 @@ class Network {
       }
     });
 
-    // While we don't have the complete cycle information for all input modules, keep button pressing
+    // While we don't have the complete cycle information for some input module, keep button pressing
     while (
-      rxInputs.some((module) => module.lowPulseCycleLength() === Infinity)
+      rxInputs.every((module) => module.lowPulseCycleLength() === Infinity)
     ) {
       this.buttonPress();
     }
 
     // Take LCM of all input modules' cycle lengths
-    return rxInputs.map((module) => module.lowPulseCycleLength()).reduce(lcm);
+    return _.min(rxInputs.map((module) => module.lowPulseCycleLength()))!;
   }
 }
 
