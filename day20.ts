@@ -214,33 +214,33 @@ class Network {
       module.connectOutput(output);
     });
 
-    Network.moduleMap.set(shortenedName, module);
+    this.moduleMap.set(shortenedName, module);
   }
 
   private static buttonPress(): void {
-    Network.delegatePulse("button", "broadcaster", Pulse.Low);
-    Network.part2ButtonPresses++;
+    this.delegatePulse("button", "broadcaster", Pulse.Low);
+    this.part2ButtonPresses++;
 
-    while (Network.queuedPulseSends.length > 0) {
-      const sending = _.clone(Network.queuedPulseSends);
-      Network.queuedPulseSends = [];
+    while (this.queuedPulseSends.length > 0) {
+      const sending = _.clone(this.queuedPulseSends);
+      this.queuedPulseSends = [];
 
       sending.forEach((moduleName) => {
-        Network.moduleMap.get(moduleName)!.sendPulse();
+        this.moduleMap.get(moduleName)!.sendPulse();
       });
     }
   }
 
   static initialize(moduleStrings: string[]) {
-    Network.moduleMap = new Map();
-    Network.highPulses = 0;
-    Network.lowPulses = 0;
-    Network.queuedPulseSends = [];
-    Network.part2ButtonPresses = 0;
+    this.moduleMap = new Map();
+    this.highPulses = 0;
+    this.lowPulses = 0;
+    this.queuedPulseSends = [];
+    this.part2ButtonPresses = 0;
 
     // Handle the outedges
     moduleStrings.forEach((moduleString) => {
-      Network.addModule(moduleString);
+      this.addModule(moduleString);
     });
 
     // Handle the inedges
@@ -251,7 +251,7 @@ class Network {
         src.startsWith("%") || src.startsWith("&") ? src.slice(1) : src;
 
       dest.split(", ").forEach((output) => {
-        const receiving = Network.moduleMap.get(output);
+        const receiving = this.moduleMap.get(output);
 
         if (receiving) {
           receiving.connectInput(shortenedName);
@@ -266,17 +266,17 @@ class Network {
     pulse: Pulse
   ): void {
     if (pulse === Pulse.High) {
-      Network.highPulses++;
+      this.highPulses++;
     } else {
-      Network.lowPulses++;
+      this.lowPulses++;
     }
 
     // If the module does not exist, do nothing
-    if (!Network.moduleMap.has(receivingModuleName)) {
+    if (!this.moduleMap.has(receivingModuleName)) {
       return;
     }
 
-    Network.moduleMap
+    this.moduleMap
       .get(receivingModuleName)!
       .receivePulse(sendingModuleName, pulse);
   }
