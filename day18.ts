@@ -1,5 +1,4 @@
 import _ from "lodash";
-import "lodash.product";
 import fs from "fs";
 
 const lines: string[] = _.reject(
