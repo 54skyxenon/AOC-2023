@@ -107,10 +107,11 @@ class Graph {
       let u = stack.pop()!;
 
       if (dist[u] != Number.MIN_VALUE) {
-        for (let j in this.adj[u]) {
-          let i = this.adj[u][j];
-          if (dist[i.v] < dist[u] + i.weight) dist[i.v] = dist[u] + i.weight;
-        }
+        this.adj[u].forEach(({ v, weight }) => {
+          if (dist[v] < dist[u] + weight) {
+            dist[v] = dist[u] + weight;
+          }
+        });
       }
     }
 
