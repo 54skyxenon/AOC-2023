@@ -4,7 +4,7 @@ I'm back for AoC 2023, this time in TypeScript!
 
 The later days are more difficult (especially day 20+ for me), and credit is given where due.
 
-<img src="https://i.ibb.co/vs77rCr/finished.png" alt="AoC 2023" width="500"/>
+<img src="https://i.ibb.co/vs77rCr/finished.png" alt="AoC 2023" width="1200"/>
 
 ## Input
 All input is read from TXT files under the `inputs/` folder that you need to make prior to executing any code.
