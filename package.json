@@ -16,6 +16,6 @@
     "lodash": "^4.17.21",
     "lodash.product": "^18.10.0",
     "multiprocess-pool": "^1.4.5",
-    "ts-node": "^10.9.2"
+    "z3-solver": "^4.12.4"
   }
 }
